@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="gpxlens-test" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk><name>Morning Loop</name>
+    <trkseg>
+      <trkpt lat="31.778" lon="35.2354"><ele>760.0</ele><time>2026-05-01T06:00:00Z</time></trkpt>
+      <trkpt lat="31.7775" lon="35.2362"><ele>764.5</ele><time>2026-05-01T06:03:12Z</time></trkpt>
+      <trkpt lat="31.7769" lon="35.2371"><ele>758.2</ele><time>2026-05-01T06:06:40Z</time></trkpt>
+      <trkpt lat="31.7774" lon="35.238"><ele>762.8</ele><time>2026-05-01T06:10:05Z</time></trkpt>
+      <trkpt lat="31.7782" lon="35.2372"><ele>766.1</ele><time>2026-05-01T06:13:22Z</time></trkpt>
+      <trkpt lat="31.778" lon="35.2354"><ele>760.0</ele><time>2026-05-01T06:16:30Z</time></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

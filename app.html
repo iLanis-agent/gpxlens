@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GpxLens - GPX track analyzer</title>
+<style>
+:root{--bg:#0b0e14;--panel:#121722;--line:#232c3d;--fg:#dbe4f0;--dim:#7d8ba1;--acc:#7ee081;--warn:#fbbf24;--err:#f87171;--ok:#4ade80;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;letter-spacing:.5px}
+header h1 span{color:var(--acc)}
+header .sub{color:var(--dim);font-size:13px}
+.wrap{padding:18px 22px;max-width:1080px;margin:0 auto}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+button,.filebtn{background:var(--panel);border:1px solid var(--line);color:var(--fg);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13px}
+button:hover,.filebtn:hover{border-color:var(--acc);color:var(--acc)}
+button.active{border-color:var(--acc);color:var(--acc);background:#12240f}
+input[type=file]{display:none}
+.summary{display:flex;gap:16px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--dim)}
+.summary b{color:var(--fg);font-weight:600}
+.notice{border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;display:none}
+.notice.warn{display:block;background:#2a2110;border:1px solid #6b5313;color:var(--warn)}
+.notice.err{display:block;background:#2a1010;border:1px solid #6b1313;color:var(--err)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase}
+.empty{color:var(--dim);padding:30px 0;text-align:center}
+canvas{width:100%;border-radius:8px;background:#0e131d;border:1px solid var(--line)}
+footer{margin:26px 0 10px;text-align:center;color:var(--dim);font-size:12px}
+footer a{color:var(--acc);text-decoration:none}
+.stat{display:inline-block;margin-right:18px}
+.stat .v{font-size:20px;font-weight:700;color:var(--fg)}
+.stat .k{font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Gpx<span>Lens</span></h1>
+  <div class="sub">drop a GPX file, get distance, climbing, pace and the shape of the route - before you upload it anywhere</div>
+</header>
+<div class="wrap">
+  <div class="controls">
+    <label class="filebtn">Open .gpx<input id="file" type="file" accept=".gpx,application/gpx+xml"></label>
+    <span style="color:var(--dim);font-size:12px">presets:</span>
+    <button data-preset="morning-loop">morning loop</button>
+    <button data-preset="hill-climb">hill climb (2 segments)</button>
+    <button data-preset="flat-walk">no elevation</button>
+    <button data-preset="empty-track">empty track</button>
+    <button data-preset="not-gpx">not a gpx</button>
+  </div>
+  <div id="err" class="notice err"></div>
+  <div id="warn" class="notice warn"></div>
+  <div id="out"></div>
+  <div id="empty" class="empty">Open a .gpx file or pick a preset. Everything runs locally - the file never leaves your machine.</div>
+  <footer>GpxLens - cross-checked against an independent Python oracle (70 checks). <a href="index.html">about</a></footer>
+</div>
+<script src="engine.js"></script>
+<script>
+'use strict';
+var PRESETS={"morning-loop": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPGdweCB2ZXJzaW9uPSIxLjEiIGNyZWF0b3I9ImdweGxlbnMtdGVzdCIgeG1sbnM9Imh0dHA6Ly93d3cudG9wb2dyYWZpeC5jb20vR1BYLzEvMSI+CiAgPHRyaz48bmFtZT5Nb3JuaW5nIExvb3A8L25hbWU+CiAgICA8dHJrc2VnPgogICAgICA8dHJrcHQgbGF0PSIzMS43NzgiIGxvbj0iMzUuMjM1NCI+PGVsZT43NjAuMDwvZWxlPjx0aW1lPjIwMjYtMDUtMDFUMDY6MDA6MDBaPC90aW1lPjwvdHJrcHQ+CiAgICAgIDx0cmtwdCBsYXQ9IjMxLjc3NzUiIGxvbj0iMzUuMjM2MiI+PGVsZT43NjQuNTwvZWxlPjx0aW1lPjIwMjYtMDUtMDFUMDY6MDM6MTJaPC90aW1lPjwvdHJrcHQ+CiAgICAgIDx0cmtwdCBsYXQ9IjMxLjc3NjkiIGxvbj0iMzUuMjM3MSI+PGVsZT43NTguMjwvZWxlPjx0aW1lPjIwMjYtMDUtMDFUMDY6MDY6NDBaPC90aW1lPjwvdHJrcHQ+CiAgICAgIDx0cmtwdCBsYXQ9IjMxLjc3NzQiIGxvbj0iMzUuMjM4Ij48ZWxlPjc2Mi44PC9lbGU+PHRpbWU+MjAyNi0wNS0wMVQwNjoxMDowNVo8L3RpbWU+PC90cmtwdD4KICAgICAgPHRya3B0IGxhdD0iMzEuNzc4MiIgbG9uPSIzNS4yMzcyIj48ZWxlPjc2Ni4xPC9lbGU+PHRpbWU+MjAyNi0wNS0wMVQwNjoxMzoyMlo8L3RpbWU+PC90cmtwdD4KICAgICAgPHRya3B0IGxhdD0iMzEuNzc4IiBsb249IjM1LjIzNTQiPjxlbGU+NzYwLjA8L2VsZT48dGltZT4yMDI2LTA1LTAxVDA2OjE2OjMwWjwvdGltZT48L3Rya3B0PgogICAgPC90cmtzZWc+CiAgPC90cms+CjwvZ3B4Pgo=", "hill-climb": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPGdweCB2ZXJzaW9uPSIxLjEiIGNyZWF0b3I9ImdweGxlbnMtdGVzdCIgeG1sbnM9Imh0dHA6Ly93d3cudG9wb2dyYWZpeC5jb20vR1BYLzEvMSI+CiAgPHdwdCBsYXQ9IjMyLjA4NTMiIGxvbj0iMzQuNzgxOCI+PG5hbWU+VHJhaWxoZWFkPC9uYW1lPjwvd3B0PgogIDxydGU+PG5hbWU+U2hvcnRjdXQ8L25hbWU+PHJ0ZXB0IGxhdD0iMzIuMDg1MyIgbG9uPSIzNC43ODE4Ii8+PHJ0ZXB0IGxhdD0iMzIuMDkwNiIgbG9uPSIzNC43ODYiLz48L3J0ZT4KICA8dHJrPjxuYW1lPkhpbGwgQ2xpbWI8L25hbWU+CiAgICA8dHJrc2VnPgogICAgICA8dHJrcHQgbGF0PSIzMi4wODUzIiBsb249IjM0Ljc4MTgiPjxlbGU+MTIuMDwvZWxlPjx0aW1lPjIwMjYtMDUtMDJUMTY6MDA6MDBaPC90aW1lPjwvdHJrcHQ+CiAgICAgIDx0cmtwdCBsYXQ9IjMyLjA4NjEiIGxvbj0iMzQuNzgyNSI+PGVsZT4xOC41PC9lbGU+PHRpbWU+MjAyNi0wNS0wMlQxNjowMjowMFo8L3RpbWU+PC90cmtwdD4KICAgICAgPHRya3B0IGxhdD0iMzIuMDg3IiBsb249IjM0Ljc4MzEiPjxlbGU+MjUuMDwvZWxlPjx0aW1lPjIwMjYtMDUtMDJUMTY6MDQ6MDBaPC90aW1lPjwvdHJrcHQ+CiAgICA8L3Rya3NlZz4KICAgIDx0cmtzZWc+CiAgICAgIDx0cmtwdCBsYXQ9IjMyLjA4OSIgbG9uPSIzNC43ODQ1Ij48ZWxlPjQwLjA8L2VsZT48dGltZT4yMDI2LTA1LTAyVDE2OjEyOjAwWjwvdGltZT48L3Rya3B0PgogICAgICA8dHJrcHQgbGF0PSIzMi4wODk4IiBsb249IjM0Ljc4NTIiPjx0aW1lPjIwMjYtMDUtMDJUMTY6MTQ6MDBaPC90aW1lPjwvdHJrcHQ+CiAgICAgIDx0cmtwdCBsYXQ9IjMyLjA5MDYiIGxvbj0iMzQuNzg2Ij48ZWxlPjU1LjA8L2VsZT48dGltZT4yMDI2LTA1LTAyVDE2OjE2OjAwWjwvdGltZT48L3Rya3B0PgogICAgPC90cmtzZWc+CiAgPC90cms+CjwvZ3B4Pgo=", "flat-walk": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPGdweCB2ZXJzaW9uPSIxLjEiIGNyZWF0b3I9ImdweGxlbnMtdGVzdCIgeG1sbnM9Imh0dHA6Ly93d3cudG9wb2dyYWZpeC5jb20vR1BYLzEvMSI+CiAgPHRyaz48bmFtZT5GbGF0IFdhbGs8L25hbWU+CiAgICA8dHJrc2VnPgogICAgICA8dHJrcHQgbGF0PSI0MC43NTgiIGxvbj0iLTczLjk4NTUiPjwvdHJrcHQ+CiAgICAgIDx0cmtwdCBsYXQ9IjQwLjc1ODYiIGxvbj0iLTczLjk4NDYiPjwvdHJrcHQ+CiAgICAgIDx0cmtwdCBsYXQ9IjQwLjc1OTIiIGxvbj0iLTczLjk4MzciPjwvdHJrcHQ+CiAgICA8L3Rya3NlZz4KICA8L3Ryaz4KPC9ncHg+Cg==", "empty-track": "PD94bWwgdmVyc2lvbj0iMS4wIj8+CjxncHggdmVyc2lvbj0iMS4xIiBjcmVhdG9yPSJncHhsZW5zLXRlc3QiPjx0cms+PG5hbWU+RW1wdHk8L25hbWU+PHRya3NlZz48L3Rya3NlZz48L3Ryaz48L2dweD4K", "not-gpx": "PGh0bWw+PGJvZHk+bm9wZTwvYm9keT48L2h0bWw+Cg=="};
+function b64ToText(s){return decodeURIComponent(escape(atob(s)));}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function km(m){return (m/1000).toFixed(2)+' km';}
+function mins(s){if(s===null||s===undefined)return '-';var h=Math.floor(s/3600),m=Math.round((s%3600)/60);return h?h+'h '+m+'m':m+' min';}
+function speed(ms){return ms===null?'-':(ms*3.6).toFixed(1)+' km/h';}
+function drawMap(cv,track){
+  var pts=[];
+  track.segments.forEach(function(s){/* recompute from raw not stored - use bounds of stats? use raw pts */});
+}
+function renderTrack(track){var rawTrk={segments:track.segments.map(function(s){return s.pts;})};
+  var pts=[];
+  rawTrk.segments.forEach(function(seg){seg.forEach(function(p){pts.push(p);});});
+  var lats=pts.map(function(p){return p.lat;}),lons=pts.map(function(p){return p.lon;});
+  var minLa=Math.min.apply(null,lats),maxLa=Math.max.apply(null,lats);
+  var minLo=Math.min.apply(null,lons),maxLo=Math.max.apply(null,lons);
+  var eles=pts.filter(function(p){return p.ele!==null;}).map(function(p){return p.ele;});
+  var h='<div class="card"><h2>'+esc(track.name||'Track')+'</h2>';
+  h+='<div style="margin-bottom:10px">'+
+    '<span class="stat"><span class="v">'+km(track.distance_m)+'</span><br><span class="k">distance</span></span>'+
+    '<span class="stat"><span class="v">+'+Math.round(track.gain_m)+' m</span><br><span class="k">climbing</span></span>'+
+    '<span class="stat"><span class="v">-'+Math.round(track.loss_m)+' m</span><br><span class="k">descent</span></span>'+
+    '<span class="stat"><span class="v">'+mins(track.duration_s)+'</span><br><span class="k">moving time</span></span>'+
+    '<span class="stat"><span class="v">'+speed(track.avg_speed)+'</span><br><span class="k">avg speed</span></span>'+
+    '<span class="stat"><span class="v">'+track.points+'</span><br><span class="k">points</span></span></div>';
+  h+='<div class="grid"><div><canvas class="map" width="520" height="360"></canvas></div><div><canvas class="ele" width="520" height="360"></canvas></div></div>';
+  h+='<table style="margin-top:10px"><tr><th>segment</th><th>points</th><th>distance</th><th>climb</th><th>time</th></tr>';
+  track.segments.forEach(function(s,i){
+    h+='<tr><td>'+(i+1)+'</td><td>'+s.points+'</td><td>'+km(s.distance_m)+'</td><td>+'+Math.round(s.gain_m)+' m</td><td>'+mins(s.duration_s)+'</td></tr>';
+  });
+  h+='</table></div>';
+  return {html:h,pts:pts,bounds:[minLa,maxLa,minLo,maxLo],eles:eles,raw:rawTrk};
+}
+function paintMaps(host,pack){
+  var map=host.querySelector('.map'),ele=host.querySelector('.ele');
+  var mc=map.getContext('2d');
+  mc.fillStyle='#0e131d';mc.fillRect(0,0,map.width,map.height);
+  var b=pack.bounds,pad=24;
+  var spanLa=Math.max(1e-9,b[1]-b[0]),spanLo=Math.max(1e-9,b[3]-b[2]);
+  var scale=Math.min((map.width-2*pad)/spanLo,(map.height-2*pad)/spanLa);
+  function xy(p){return [pad+(p.lon-b[2])*scale+(map.width-2*pad-spanLo*scale)/2,
+                        map.height-pad-(p.lat-b[0])*scale-(map.height-2*pad-spanLa*scale)/2];}
+  pack.raw.segments.forEach(function(seg){
+    mc.beginPath();mc.strokeStyle='#7ee081';mc.lineWidth=2.5;
+    seg.forEach(function(p,i){var q=xy(p);if(i===0)mc.moveTo(q[0],q[1]);else mc.lineTo(q[0],q[1]);});
+    mc.stroke();
+    var s0=xy(seg[0]);mc.fillStyle='#4ade80';mc.beginPath();mc.arc(s0[0],s0[1],5,0,7);mc.fill();
+    var s1=xy(seg[seg.length-1]);mc.fillStyle='#f87171';mc.beginPath();mc.arc(s1[0],s1[1],5,0,7);mc.fill();
+  });
+  if(pack.eles.length){
+    var ec=ele.getContext('2d');
+    ec.fillStyle='#0e131d';ec.fillRect(0,0,ele.width,ele.height);
+    var epts=[];
+    pack.raw.segments.forEach(function(seg){seg.forEach(function(p){if(p.ele!==null)epts.push(p.ele);});});
+    var mn=Math.min.apply(null,epts),mx=Math.max.apply(null,epts),span=Math.max(1,mx-mn);
+    ec.beginPath();ec.moveTo(0,ele.height);
+    for(var i=0;i<epts.length;i++){
+      var x=i/(epts.length-1||1)*ele.width;
+      var y=ele.height-16-((epts[i]-mn)/span)*(ele.height-48);
+      ec.lineTo(x,y);
+    }
+    ec.lineTo(ele.width,ele.height);ec.closePath();
+    ec.fillStyle='rgba(126,224,129,0.25)';ec.fill();
+    ec.strokeStyle='#7ee081';ec.lineWidth=2;ec.stroke();
+    ec.fillStyle='#7d8ba1';ec.font='12px sans-serif';
+    ec.fillText(Math.round(mx)+' m',8,16);ec.fillText(Math.round(mn)+' m',8,ele.height-6);
+  }else{
+    var e2=ele.getContext('2d');e2.fillStyle='#0e131d';e2.fillRect(0,0,ele.width,ele.height);
+    e2.fillStyle='#7d8ba1';e2.font='14px sans-serif';e2.fillText('no elevation data in this file',20,40);
+  }
+}
+function load(text,name){
+  var r=GpxLens.parse(text);
+  var err=document.getElementById('err'),warn=document.getElementById('warn');
+  err.style.display='none';warn.style.display='none';
+  if(r.errors.length){err.style.display='block';err.textContent=r.errors.join('; ');}
+  if(r.warnings.length){warn.style.display='block';warn.textContent=r.warnings.join('; ');}
+  if(r.errors.length)return;
+  document.getElementById('empty').style.display='none';
+  var out=document.getElementById('out');
+  out.innerHTML='';
+  if(!r.tracks.length){out.innerHTML='<div class="empty">no usable tracks in '+esc(name)+'</div>';return;}
+  r.tracks.forEach(function(t,i){
+    var pack=renderTrack(t);
+    var div=document.createElement('div');
+    div.innerHTML=pack.html;
+    out.appendChild(div);
+    paintMaps(div,pack);
+  });
+}
+document.getElementById('file').addEventListener('change',function(){
+  var f=this.files[0];if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){load(rd.result,f.name);};
+  rd.readAsText(f);
+});
+var btns=document.querySelectorAll('button[data-preset]');
+for(var k=0;k<btns.length;k++){
+  btns[k].addEventListener('click',function(){
+    for(var m=0;m<btns.length;m++)btns[m].classList.remove('active');
+    this.classList.add('active');
+    var name=this.getAttribute('data-preset');
+    load(b64ToText(PRESETS[name]),name+'.gpx (preset)');
+  });
+}
+</script>
+</body>
+</html>

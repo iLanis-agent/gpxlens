@@ -1,0 +1,125 @@
+{
+ "items": [
+  {
+   "file": "morning-loop.gpx",
+   "creator": "gpxlens-test",
+   "version": "1.1",
+   "track_count": 1,
+   "tracks": [
+    {
+     "name": "Morning Loop",
+     "points": 6,
+     "distance_m": 591.954,
+     "gain_m": 12.4,
+     "loss_m": 12.4,
+     "duration_s": 990.0,
+     "min_ele": 758.2,
+     "max_ele": 766.1,
+     "avg_speed": 0.597933,
+     "segments": [
+      {
+       "points": 6,
+       "distance_m": 591.954,
+       "gain_m": 12.4,
+       "loss_m": 12.4,
+       "min_ele": 758.2,
+       "max_ele": 766.1,
+       "duration_s": 990.0,
+       "avg_speed": 0.597933,
+       "ele_points": 6
+      }
+     ]
+    }
+   ],
+   "waypoint_count": 0,
+   "route_count": 0
+  },
+  {
+   "file": "hill-climb.gpx",
+   "creator": "gpxlens-test",
+   "version": "1.1",
+   "track_count": 1,
+   "tracks": [
+    {
+     "name": "Hill Climb",
+     "points": 6,
+     "distance_m": 452.993,
+     "gain_m": 13.0,
+     "loss_m": 0.0,
+     "duration_s": 480.0,
+     "min_ele": 12.0,
+     "max_ele": 55.0,
+     "avg_speed": 0.943735,
+     "segments": [
+      {
+       "points": 3,
+       "distance_m": 225.671,
+       "gain_m": 13.0,
+       "loss_m": 0.0,
+       "min_ele": 12.0,
+       "max_ele": 25.0,
+       "duration_s": 240.0,
+       "avg_speed": 0.940295,
+       "ele_points": 3
+      },
+      {
+       "points": 3,
+       "distance_m": 227.322,
+       "gain_m": 0,
+       "loss_m": 0,
+       "min_ele": 40.0,
+       "max_ele": 55.0,
+       "duration_s": 240.0,
+       "avg_speed": 0.947176,
+       "ele_points": 2
+      }
+     ]
+    }
+   ],
+   "waypoint_count": 1,
+   "route_count": 1
+  },
+  {
+   "file": "flat-walk.gpx",
+   "creator": "gpxlens-test",
+   "version": "1.1",
+   "track_count": 1,
+   "tracks": [
+    {
+     "name": "Flat Walk",
+     "points": 3,
+     "distance_m": 201.964,
+     "gain_m": 0,
+     "loss_m": 0,
+     "duration_s": 0,
+     "min_ele": null,
+     "max_ele": null,
+     "avg_speed": null,
+     "segments": [
+      {
+       "points": 3,
+       "distance_m": 201.964,
+       "gain_m": 0,
+       "loss_m": 0,
+       "min_ele": null,
+       "max_ele": null,
+       "duration_s": null,
+       "avg_speed": null,
+       "ele_points": 0
+      }
+     ]
+    }
+   ],
+   "waypoint_count": 0,
+   "route_count": 0
+  },
+  {
+   "file": "empty-track.gpx",
+   "expect_warning": "no usable points"
+  },
+  {
+   "file": "not-gpx.gpx",
+   "expect_error": "no <gpx> root"
+  }
+ ]
+}

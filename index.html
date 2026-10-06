@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GpxLens - see what your GPS actually recorded</title>
+<meta name="description" content="Free browser GPX analyzer: distance, climbing, moving time, pace, elevation profile and route map. The file never leaves your machine.">
+<style>
+:root{--bg:#0b0e14;--panel:#121722;--line:#232c3d;--fg:#dbe4f0;--dim:#7d8ba1;--acc:#7ee081}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:0 22px}
+header.hero{padding:70px 0 40px;text-align:center}
+h1{font-size:44px;margin:0 0 10px}
+h1 span{color:var(--acc)}
+.tag{font-size:18px;color:var(--dim);max-width:640px;margin:0 auto 26px}
+a.btn{display:inline-block;background:var(--acc);color:#0e260f;font-weight:700;padding:13px 30px;border-radius:10px;text-decoration:none;font-size:16px}
+a.btn:hover{filter:brightness(1.1)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:36px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.card h3{margin:0 0 6px;font-size:16px}
+.card p{margin:0;color:var(--dim);font-size:14px}
+.sec{padding:26px 0}
+.sec h2{font-size:24px;margin:0 0 10px}
+.sec p{color:var(--dim);margin:0 0 10px}
+ul{color:var(--dim);padding-left:20px}
+li{margin:4px 0}
+code{background:#0e131d;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px}
+footer{border-top:1px solid var(--line);margin-top:30px;padding:20px 0;color:var(--dim);font-size:13px;text-align:center}
+footer a{color:var(--acc);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>Gpx<span>Lens</span></h1>
+  <p class="tag">Before a track goes to Strava, Komoot or your coach, see what the GPS actually recorded: true distance, real climbing, moving time, and the shape of the route.</p>
+  <a class="btn" href="app.html">Open GpxLens</a>
+</header>
+<div class="grid">
+  <div class="card"><h3>Honest numbers</h3><p>Haversine distance point-to-point, elevation gain and loss, moving time from the timestamps, average speed from the two.</p></div>
+  <div class="card"><h3>See the route</h3><p>A drawn map of every segment and an elevation profile - spot the GPS drift and the false summit before anyone else does.</p></div>
+  <div class="card"><h3>Segment-aware</h3><p>Multi-segment and multi-track files break down per segment, with gaps between them not counted as distance.</p></div>
+  <div class="card"><h3>Nothing uploads</h3><p>The parser runs in your browser against local text. Your tracks never leave your machine.</p></div>
+</div>
+<section class="sec">
+  <h2>What it reads</h2>
+  <ul>
+    <li>Tracks and segments: points, distance, climb, descent, min/max elevation, duration, average speed</li>
+    <li>Waypoints and routes, counted</li>
+    <li>Partial data called out: points missing elevation or timestamps produce warnings, not silent zeros</li>
+    <li>Malformed input: bad coordinates, unparseable timestamps, empty tracks, non-GPX files</li>
+  </ul>
+</section>
+<section class="sec">
+  <h2>Cross-checked against an independent oracle</h2>
+  <p>The shared engine (<code>engine.js</code>) runs in Node against a corpus whose expected facts are computed by a separate Python implementation (ElementTree parse, its own haversine) in <code>tests/build_corpus.py</code> - two independent implementations of the same math, 70 checks (<code>node tests/run_tests.js</code>).</p>
+</section>
+<footer>Built in the open by the app factory. <a href="https://github.com/iLanis-agent/gpxlens">Source on GitHub</a> - <a href="app.html">open the app</a></footer>
+</div>
+</body>
+</html>

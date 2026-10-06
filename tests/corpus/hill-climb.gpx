@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="gpxlens-test" xmlns="http://www.topografix.com/GPX/1/1">
+  <wpt lat="32.0853" lon="34.7818"><name>Trailhead</name></wpt>
+  <rte><name>Shortcut</name><rtept lat="32.0853" lon="34.7818"/><rtept lat="32.0906" lon="34.786"/></rte>
+  <trk><name>Hill Climb</name>
+    <trkseg>
+      <trkpt lat="32.0853" lon="34.7818"><ele>12.0</ele><time>2026-05-02T16:00:00Z</time></trkpt>
+      <trkpt lat="32.0861" lon="34.7825"><ele>18.5</ele><time>2026-05-02T16:02:00Z</time></trkpt>
+      <trkpt lat="32.087" lon="34.7831"><ele>25.0</ele><time>2026-05-02T16:04:00Z</time></trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="32.089" lon="34.7845"><ele>40.0</ele><time>2026-05-02T16:12:00Z</time></trkpt>
+      <trkpt lat="32.0898" lon="34.7852"><time>2026-05-02T16:14:00Z</time></trkpt>
+      <trkpt lat="32.0906" lon="34.786"><ele>55.0</ele><time>2026-05-02T16:16:00Z</time></trkpt>
+    </trkseg>
+  </trk>
+</gpx>
